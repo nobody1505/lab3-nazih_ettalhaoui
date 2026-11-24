@@ -1,0 +1,30 @@
+# From an old blog post: "works for me!"
+
+services:
+  api:
+    build: ..
+    image: airwatch:1.0
+    ports:
+      - "8080:5000"
+    environment:
+      DATABASE_URL: postgresql://airwatch:airwatch@db:5432/airwatch
+      CONNECT_RETRIES: "3"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: airwatch
+      POSTGRES_DB: airwatch
+      POSTGRES_PASSWORD: airwatch
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airwatch -d airwatch"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  pgdata:
